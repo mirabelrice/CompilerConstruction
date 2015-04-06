@@ -1,0 +1,9 @@
+!this program demonstrates
+
+let
+	var ptr : pointer to Integer
+in
+	begin
+		ptr := new Integer;
+		delete ptr
+	end
