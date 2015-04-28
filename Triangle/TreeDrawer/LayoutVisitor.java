@@ -33,6 +33,7 @@ import Triangle.AbstractSyntaxTrees.ConstActualParameter;
 import Triangle.AbstractSyntaxTrees.ConstDeclaration;
 import Triangle.AbstractSyntaxTrees.ConstFormalParameter;
 import Triangle.AbstractSyntaxTrees.DotVname;
+import Triangle.AbstractSyntaxTrees.DereferenceExpression;
 import Triangle.AbstractSyntaxTrees.EmptyActualParameterSequence;
 import Triangle.AbstractSyntaxTrees.EmptyCommand;
 import Triangle.AbstractSyntaxTrees.EmptyExpression;
@@ -59,8 +60,10 @@ import Triangle.AbstractSyntaxTrees.ProcActualParameter;
 import Triangle.AbstractSyntaxTrees.ProcDeclaration;
 import Triangle.AbstractSyntaxTrees.ProcFormalParameter;
 import Triangle.AbstractSyntaxTrees.Program;
+import Triangle.AbstractSyntaxTrees.PointerTypeDenoter;
 import Triangle.AbstractSyntaxTrees.RecordExpression;
 import Triangle.AbstractSyntaxTrees.RecordTypeDenoter;
+import Triangle.AbstractSyntaxTrees.ReferenceExpression;
 import Triangle.AbstractSyntaxTrees.SequentialCommand;
 import Triangle.AbstractSyntaxTrees.SequentialDeclaration;
 import Triangle.AbstractSyntaxTrees.SimpleTypeDenoter;
@@ -165,6 +168,14 @@ public class LayoutVisitor implements Visitor {
 
   public Object visitVnameExpression(VnameExpression ast, Object obj) {
     return layoutUnary("VnameExpr.", ast.V);
+  }
+
+  public Object visitReferenceExpression(ReferenceExpression ast, Object obj) {
+    return layoutUnary("ReferenceExpr.", ast.T);
+  }
+
+   public Object visitDereferenceExpression(DereferenceExpression ast, Object obj) {
+    return layoutUnary("DereferenceExpr.", ast.T);
   }
 
 
@@ -320,6 +331,10 @@ public class LayoutVisitor implements Visitor {
 
   public Object visitMultipleFieldTypeDenoter(MultipleFieldTypeDenoter ast, Object obj) {
     return layoutTernary("Mult.F.TypeD.", ast.I, ast.T, ast.FT);
+  }
+
+  public Object visitPointerTypeDenoter(MultipleFieldTypeDenoter ast, Object obj) {
+    return layoutUnary("pointer.TypeD.", ast.T);
   }
 
   public Object visitSingleFieldTypeDenoter(SingleFieldTypeDenoter ast, Object obj) {

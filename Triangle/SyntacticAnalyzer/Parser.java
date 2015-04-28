@@ -29,6 +29,7 @@ import Triangle.AbstractSyntaxTrees.CharacterExpression;
 import Triangle.AbstractSyntaxTrees.CharacterLiteral;
 import Triangle.AbstractSyntaxTrees.Command;
 import Triangle.AbstractSyntaxTrees.DeleteCommand;
+import Triangle.AbstractSyntaxTrees.DereferenceExpression;
 import Triangle.AbstractSyntaxTrees.ConstActualParameter;
 import Triangle.AbstractSyntaxTrees.ConstDeclaration;
 import Triangle.AbstractSyntaxTrees.ConstFormalParameter;
@@ -216,6 +217,7 @@ public class Parser {
     if (currentToken.kind == Token.IDENTIFIER) {
       previousTokenPosition = currentToken.position;
       String spelling = currentToken.spelling;
+      System.out.println(spelling);
       I = new Identifier(spelling, previousTokenPosition);
       currentToken = lexicalAnalyser.scan();
     } else {
@@ -275,6 +277,18 @@ public class Parser {
     start(commandPos);
 
     switch (currentToken.kind) {
+    case Token.OPERATOR:
+      {
+        acceptIt();
+        Identifier iAST = parseIdentifier();
+        Vname vAST = parseRestOfVname(iAST);
+        accept(Token.BECOMES);
+        Expression eAST = parseExpression();
+      //  Expression eAST2 
+        finish(commandPos);
+        commandAST = new AssignCommand(vAST, eAST, commandPos);
+      }
+    break;
 
     case Token.IDENTIFIER:
       {
@@ -285,12 +299,10 @@ public class Parser {
           accept(Token.RPAREN);
           finish(commandPos);
           commandAST = new CallCommand(iAST, apsAST, commandPos);
-
         } else {
-
           Vname vAST = parseRestOfVname(iAST);
           accept(Token.BECOMES);
-          Expression eAST = parseExpression();
+          Expression eAST = parseExpression(); 
           finish(commandPos);
           commandAST = new AssignCommand(vAST, eAST, commandPos);
         }
@@ -503,27 +515,6 @@ public class Parser {
       }
       break;
 
-      /*
-    case Token.NEW:
-      {
-        acceptIt();
-        TypeDenoter tAST = parseTypeDenoter();
-        finish(expressionPos);
-        expressionAST = new AllocateExpression(tAST, expressionPos); 
-      }
-      break;
-  
-    case Token.REFERENCE:
-      {
-        acceptIt();
-        //accept(Token.OF);
-        Vname vAST = parseVname();
-        finish(expressionPos);
-        System.out.println("after finish");
-        expressionAST = new ReferenceExpression(vAST, expressionPos);
-      }
-      break;
-      */
     case Token.OPERATOR:
       {
         Operator opAST = parseOperator();

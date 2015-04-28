@@ -1,15 +1,16 @@
 package Triangle.AbstractSyntaxTrees;
 import Triangle.SyntacticAnalyzer.SourcePosition;
 
+public class DereferenceExpression extends Expression {
 
-public class DereferenceExpression extends Expression{
-	public DereferenceExpression(Vname vnAST, SourcePosition thePosition){
-		super(thePosition);
-		VN = vnAST;
-	}
+  public DereferenceExpression (TypeDenoter tAST, SourcePosition thePosition) {
+    super (thePosition);
+    T = tAST;
+  }
 
-	public Object visit (Visitor v, Object o) {
-    	return v.visitDereferenceExpression(this, o);
-  	}
-	public Vname VN;
+  public Object visit(Visitor v, Object o) {
+    return v.visitDereferenceExpression(this, o);
+  }
+
+  public TypeDenoter T;
 }

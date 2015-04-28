@@ -1,9 +1,11 @@
 
 let
 	var ptr1: pointer to Integer;
-	var ptr2: pointer to Integer
+	var ptr2: pointer to Integer;
+	var int1: Integer;
+	var int2: Integer
+
 in
 	begin
-		ptr1:= new Integer;
-		delete ptr1
+		ptr1:= &int1;
 	end

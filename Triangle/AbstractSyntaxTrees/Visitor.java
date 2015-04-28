@@ -37,9 +37,9 @@ public interface Visitor {
   public abstract Object visitIfExpression(IfExpression ast, Object o);
   public abstract Object visitIntegerExpression(IntegerExpression ast, Object o);
   public abstract Object visitLetExpression(LetExpression ast, Object o);
-  //public abstract Object visitPointerExpression(PointerExpression ast, Object o);
   public abstract Object visitRecordExpression(RecordExpression ast, Object o);
   public abstract Object visitDereferenceExpression(DereferenceExpression ast, Object o);
+  public abstract Object visitReferenceExpression(ReferenceExpression ast, Object o);
   public abstract Object visitUnaryExpression(UnaryExpression ast, Object o);
   public abstract Object visitVnameExpression(VnameExpression ast, Object o);
 
