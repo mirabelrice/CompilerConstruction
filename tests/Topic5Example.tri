@@ -1,11 +1,10 @@
 
 let
-	var ptr1: pointer to Integer;
-	var ptr2: pointer to Integer;
-	var int1: Integer;
-	var int2: Integer
-
+	var ptr: pointer to Integer;
+	var intA: Integer;
+	var charA: Char
 in
 	begin
-		ptr1:= &int1;
+		ptr:= &intA;
+		ptr:= charA
 	end

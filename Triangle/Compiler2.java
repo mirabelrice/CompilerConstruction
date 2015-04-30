@@ -89,7 +89,7 @@ public class Compiler2 {
       System.out.println ("Contextual Analysis ...");
       checker.check(theAST);    // 2nd pass
       if (showingAST) {
-        //drawer.draw(theAST);
+        drawer.draw(theAST);
       }
       /*
       if (reporter.numErrors == 0) {

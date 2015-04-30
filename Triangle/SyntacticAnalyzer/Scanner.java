@@ -111,9 +111,9 @@ public final class Scanner {
         takeIt();
       return Token.INTLITERAL;
 
-    case '+':  case '-':  case '*': case '/':  case '=':
-    case '<':  case '>':  case '\\':  case '&':  case '@':
-    case '%':  case '^':  case '?': 
+    case '+':  case '-': case '/':  case '=':
+    case '<':  case '>':  case '\\': case '@':
+    case '%':  case '?': 
       takeIt();
       while (isOperator(currentChar))
         takeIt();
@@ -151,6 +151,14 @@ public final class Scanner {
     case '~':
       takeIt();
       return Token.IS;
+
+    case '*':
+      takeIt();
+      return Token.DEREFERENCE;
+
+    case '&':
+      takeIt();
+      return Token.REFERENCE;
 
     case '(':
       takeIt();

@@ -1,0 +1,7 @@
+
+let
+	var arr: array 10 of Integer
+in
+	begin
+		arr[0]:= 2
+	end

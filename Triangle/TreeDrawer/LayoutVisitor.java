@@ -34,6 +34,7 @@ import Triangle.AbstractSyntaxTrees.ConstDeclaration;
 import Triangle.AbstractSyntaxTrees.ConstFormalParameter;
 import Triangle.AbstractSyntaxTrees.DotVname;
 import Triangle.AbstractSyntaxTrees.DereferenceExpression;
+import Triangle.AbstractSyntaxTrees.DereferenceCommand;
 import Triangle.AbstractSyntaxTrees.EmptyActualParameterSequence;
 import Triangle.AbstractSyntaxTrees.EmptyCommand;
 import Triangle.AbstractSyntaxTrees.EmptyExpression;
@@ -104,6 +105,10 @@ public class LayoutVisitor implements Visitor {
     return layoutBinary("CallCom.", ast.I, ast.APS);
    }
 
+  public Object visitDereferenceCommand(DereferenceCommand ast, Object obj) {
+    return layoutBinary("DereferenceCom.", ast.E1, ast.E2);
+  }
+
   public Object visitEmptyCommand(EmptyCommand ast, Object obj) {
     return layoutNullary("EmptyCom.");
   }
@@ -142,6 +147,10 @@ public class LayoutVisitor implements Visitor {
     return layoutUnary("Char.Expr.", ast.CL);
   }
 
+  public Object visitDereferenceExpression(DereferenceExpression ast, Object obj) {
+    return layoutUnary("DereferenceExpr.", ast.T);
+  }
+
   public Object visitEmptyExpression(EmptyExpression ast, Object obj) {
     return layoutNullary("EmptyExpr.");
   }
@@ -162,6 +171,11 @@ public class LayoutVisitor implements Visitor {
     return layoutUnary("Rec.Expr.", ast.RA);
   }
 
+  public Object visitReferenceExpression(ReferenceExpression ast, Object obj) {
+    return layoutUnary("ReferenceExpr.", ast.V);
+  }
+
+
   public Object visitUnaryExpression(UnaryExpression ast, Object obj) {
     return layoutBinary("UnaryExpr.", ast.O, ast.E);
   }
@@ -170,13 +184,8 @@ public class LayoutVisitor implements Visitor {
     return layoutUnary("VnameExpr.", ast.V);
   }
 
-  public Object visitReferenceExpression(ReferenceExpression ast, Object obj) {
-    return layoutUnary("ReferenceExpr.", ast.T);
-  }
-
-   public Object visitDereferenceExpression(DereferenceExpression ast, Object obj) {
-    return layoutUnary("DereferenceExpr.", ast.T);
-  }
+  
+  
 
 
   // Declarations

@@ -38,7 +38,7 @@ public final class StdEnvironment {
     falseDecl, trueDecl, maxintDecl;
 
   public static UnaryOperatorDeclaration
-    notDecl, dereferenceDecl, referenceDecl;
+    notDecl;
 
   public static BinaryOperatorDeclaration
     andDecl, orDecl,

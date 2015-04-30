@@ -3,14 +3,14 @@ import Triangle.SyntacticAnalyzer.SourcePosition;
 
 public class DereferenceExpression extends Expression {
 
-  public DereferenceExpression (TypeDenoter tAST, SourcePosition thePosition) {
+  public DereferenceExpression(Identifier iAST, SourcePosition thePosition) {
     super (thePosition);
-    T = tAST;
+    I = iAST;
   }
 
   public Object visit(Visitor v, Object o) {
     return v.visitDereferenceExpression(this, o);
   }
 
-  public TypeDenoter T;
+  public Identifier I;
 }

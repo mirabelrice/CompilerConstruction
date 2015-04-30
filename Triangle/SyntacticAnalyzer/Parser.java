@@ -29,11 +29,13 @@ import Triangle.AbstractSyntaxTrees.CharacterExpression;
 import Triangle.AbstractSyntaxTrees.CharacterLiteral;
 import Triangle.AbstractSyntaxTrees.Command;
 import Triangle.AbstractSyntaxTrees.DeleteCommand;
+import Triangle.AbstractSyntaxTrees.DereferenceCommand;
 import Triangle.AbstractSyntaxTrees.DereferenceExpression;
 import Triangle.AbstractSyntaxTrees.ConstActualParameter;
 import Triangle.AbstractSyntaxTrees.ConstDeclaration;
 import Triangle.AbstractSyntaxTrees.ConstFormalParameter;
 import Triangle.AbstractSyntaxTrees.Declaration;
+import Triangle.AbstractSyntaxTrees.DereferenceExpression;
 import Triangle.AbstractSyntaxTrees.DotVname;
 import Triangle.AbstractSyntaxTrees.EmptyActualParameterSequence;
 import Triangle.AbstractSyntaxTrees.EmptyCommand;
@@ -277,16 +279,15 @@ public class Parser {
     start(commandPos);
 
     switch (currentToken.kind) {
-    case Token.OPERATOR:
+    case Token.DEREFERENCE:
       {
         acceptIt();
-        Identifier iAST = parseIdentifier();
-        Vname vAST = parseRestOfVname(iAST);
+        Expression e1AST = parseExpression();
+        System.out.println("before becomes");
         accept(Token.BECOMES);
-        Expression eAST = parseExpression();
-      //  Expression eAST2 
+        Expression e2AST = parseExpression();
         finish(commandPos);
-        commandAST = new AssignCommand(vAST, eAST, commandPos);
+        commandAST = new DereferenceCommand(e1AST, e2AST, commandPos);
       }
     break;
 
@@ -430,6 +431,7 @@ public class Parser {
       }
       break;
 
+
     default:
       expressionAST = parseSecondaryExpression();
       break;
@@ -521,6 +523,25 @@ public class Parser {
         Expression eAST = parsePrimaryExpression();
         finish(expressionPos);
         expressionAST = new UnaryExpression(opAST, eAST, expressionPos);
+      }
+      break;
+
+
+    case Token.REFERENCE:
+      {
+        acceptIt();
+        Vname vAST = parseVname();
+        finish(expressionPos);
+        expressionAST = new ReferenceExpression(vAST, expressionPos); 
+      }
+      break;
+
+    case Token.DEREFERENCE:
+      {
+        acceptIt();
+        Identifier iAST = parseIdentifier();
+        finish(expressionPos);
+        expressionAST = new DereferenceExpression(iAST, expressionPos); 
       }
       break;
 
