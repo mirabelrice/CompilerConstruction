@@ -34,7 +34,7 @@ import Triangle.AbstractSyntaxTrees.ConstDeclaration;
 import Triangle.AbstractSyntaxTrees.ConstFormalParameter;
 import Triangle.AbstractSyntaxTrees.DotVname;
 import Triangle.AbstractSyntaxTrees.DereferenceExpression;
-import Triangle.AbstractSyntaxTrees.DereferenceCommand;
+import Triangle.AbstractSyntaxTrees.DereferenceVname;
 import Triangle.AbstractSyntaxTrees.EmptyActualParameterSequence;
 import Triangle.AbstractSyntaxTrees.EmptyCommand;
 import Triangle.AbstractSyntaxTrees.EmptyExpression;
@@ -105,10 +105,6 @@ public class LayoutVisitor implements Visitor {
     return layoutBinary("CallCom.", ast.I, ast.APS);
    }
 
-  public Object visitDereferenceCommand(DereferenceCommand ast, Object obj) {
-    return layoutBinary("DereferenceCom.", ast.E1, ast.E2);
-  }
-
   public Object visitEmptyCommand(EmptyCommand ast, Object obj) {
     return layoutNullary("EmptyCom.");
   }
@@ -148,7 +144,7 @@ public class LayoutVisitor implements Visitor {
   }
 
   public Object visitDereferenceExpression(DereferenceExpression ast, Object obj) {
-    return layoutUnary("DereferenceExpr.", ast.T);
+    return layoutUnary("DereferenceExpr.", ast.V);
   }
 
   public Object visitEmptyExpression(EmptyExpression ast, Object obj) {
@@ -372,6 +368,10 @@ public class LayoutVisitor implements Visitor {
   // Value-or-variable names
   public Object visitDotVname(DotVname ast, Object obj) {
     return layoutBinary("DotVname", ast.I, ast.V);
+  }
+
+  public Object visitDereferenceVname(DereferenceVname ast, Object obj) {
+    return layoutUnary("deref.Vname", ast.E);
   }
 
   public Object visitSimpleVname(SimpleVname ast, Object obj) {

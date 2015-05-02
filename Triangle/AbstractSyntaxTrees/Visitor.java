@@ -20,7 +20,6 @@ public interface Visitor {
   public abstract Object visitAssignCommand(AssignCommand ast, Object o);
   public abstract Object visitCallCommand(CallCommand ast, Object o);
   public abstract Object visitDeleteCommand(DeleteCommand ast, Object o);
-  public abstract Object visitDereferenceCommand(DereferenceCommand ast, Object o);
   public abstract Object visitEmptyCommand(EmptyCommand ast, Object o);
   public abstract Object visitIfCommand(IfCommand ast, Object o);
   public abstract Object visitLetCommand(LetCommand ast, Object o);
@@ -105,6 +104,7 @@ public interface Visitor {
 
   // Value-or-variable names
   public abstract Object visitDotVname(DotVname ast, Object o);
+  public abstract Object visitDereferenceVname(DereferenceVname ast, Object o);
   public abstract Object visitSimpleVname(SimpleVname ast, Object o);
   public abstract Object visitSubscriptVname(SubscriptVname ast, Object o);
 

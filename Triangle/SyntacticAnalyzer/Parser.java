@@ -36,6 +36,7 @@ import Triangle.AbstractSyntaxTrees.ConstDeclaration;
 import Triangle.AbstractSyntaxTrees.ConstFormalParameter;
 import Triangle.AbstractSyntaxTrees.Declaration;
 import Triangle.AbstractSyntaxTrees.DereferenceExpression;
+import Triangle.AbstractSyntaxTrees.DereferenceVname;
 import Triangle.AbstractSyntaxTrees.DotVname;
 import Triangle.AbstractSyntaxTrees.EmptyActualParameterSequence;
 import Triangle.AbstractSyntaxTrees.EmptyCommand;
@@ -224,6 +225,7 @@ public class Parser {
       currentToken = lexicalAnalyser.scan();
     } else {
       I = null;
+      System.out.println("in id" + currentToken.spelling);
       syntacticError("identifier expected here", "");
     }
     return I;
@@ -281,13 +283,11 @@ public class Parser {
     switch (currentToken.kind) {
     case Token.DEREFERENCE:
       {
-        acceptIt();
-        Expression e1AST = parseExpression();
-        System.out.println("before becomes");
+        Vname vAST = parseDereferenceVname();
         accept(Token.BECOMES);
-        Expression e2AST = parseExpression();
+        Expression eAST = parseExpression();
         finish(commandPos);
-        commandAST = new DereferenceCommand(e1AST, e2AST, commandPos);
+        commandAST = new AssignCommand(vAST, eAST, commandPos);
       }
     break;
 
@@ -303,6 +303,7 @@ public class Parser {
         } else {
           Vname vAST = parseRestOfVname(iAST);
           accept(Token.BECOMES);
+
           Expression eAST = parseExpression(); 
           finish(commandPos);
           commandAST = new AssignCommand(vAST, eAST, commandPos);
@@ -539,9 +540,9 @@ public class Parser {
     case Token.DEREFERENCE:
       {
         acceptIt();
-        Identifier iAST = parseIdentifier();
+        Vname vAST = parseVname();
         finish(expressionPos);
-        expressionAST = new DereferenceExpression(iAST, expressionPos); 
+        expressionAST = new DereferenceExpression(vAST, expressionPos); 
       }
       break;
 
@@ -604,7 +605,6 @@ public class Parser {
   }
 
 
-
 ///////////////////////////////////////////////////////////////////////////////
 //
 // VALUE-OR-VARIABLE NAMES
@@ -630,7 +630,7 @@ public class Parser {
         acceptIt();
         Identifier iAST = parseIdentifier();
         vAST = new DotVname(vAST, iAST, vnamePos);
-      } else {
+      }else {
         acceptIt();
         Expression eAST = parseExpression();
         accept(Token.RBRACKET);
@@ -638,6 +638,16 @@ public class Parser {
         vAST = new SubscriptVname(vAST, eAST, vnamePos);
       }
     }
+    return vAST;
+  }
+
+  Vname parseDereferenceVname() throws SyntaxError{
+    SourcePosition vnamePos = new SourcePosition();
+    start(vnamePos);
+    Vname vAST = null; // in case there's a syntactic error
+    Expression eAST = parseExpression();
+    finish(vnamePos);
+    vAST = new DereferenceVname(eAST, vnamePos);
     return vAST;
   }
 

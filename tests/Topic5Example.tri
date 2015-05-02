@@ -1,10 +1,10 @@
 
 let
 	var ptr: pointer to Integer;
+	var ptr2: pointer to Integer;
 	var intA: Integer;
 	var charA: Char
 in
 	begin
-		ptr:= &intA;
-		ptr:= charA
+		*ptr:= 5
 	end

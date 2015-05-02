@@ -34,7 +34,7 @@ import Triangle.AbstractSyntaxTrees.ConstDeclaration;
 import Triangle.AbstractSyntaxTrees.ConstFormalParameter;
 import Triangle.AbstractSyntaxTrees.Declaration;
 import Triangle.AbstractSyntaxTrees.DeleteCommand;
-import Triangle.AbstractSyntaxTrees.DereferenceCommand;
+import Triangle.AbstractSyntaxTrees.DereferenceVname;
 import Triangle.AbstractSyntaxTrees.DereferenceExpression;
 import Triangle.AbstractSyntaxTrees.DotVname;
 import Triangle.AbstractSyntaxTrees.EmptyActualParameterSequence;
@@ -104,9 +104,12 @@ public final class Checker implements Visitor {
     TypeDenoter vType =  (TypeDenoter) ast.V.visit(this, null);
     System.out.println("vType" + vType);
     TypeDenoter eType = (TypeDenoter) ast.E.visit(this, null);
+    System.out.println("eType" + eType);
 
-    if (!ast.V.variable)
+
+    if (!ast.V.variable){
         reporter.reportError ("LHS of assignment is not a variable", "", ast.V.position);
+    }
     if(!(vType instanceof PointerTypeDenoter)){
       if (!eType.equals(vType)){
         reporter.reportError ("assignment incompatibilty", "", ast.position);
@@ -162,12 +165,6 @@ public final class Checker implements Visitor {
     ast.D.visit(this, null);
     ast.C.visit(this, null);
     idTable.closeScope();
-    return null;
-  }
-
-  public Object visitDereferenceCommand(DereferenceCommand ast, Object o) {
-    TypeDenoter eType = (TypeDenoter) ast.E1.visit(this, null);
-    System.out.println("in visit dereference");
     return null;
   }
 
@@ -265,7 +262,12 @@ public final class Checker implements Visitor {
   }
 
   public Object visitDereferenceExpression(DereferenceExpression ast, Object o) {
-    //TypeDenoter eType = (TypeDenoter) ast.E.visit(this, null);
+    TypeDenoter vType = (TypeDenoter) ast.V.visit(this, null);
+    //ast.variable = ast.V.variable;
+    if(!(vType instanceof PointerTypeDenoter)){
+       reporter.reportError("cannot dereference non-pointer type", "", ast.V.position);
+    }
+    ast.type = vType;
     return ast.type;
   }
 
@@ -771,6 +773,13 @@ public final class Checker implements Visitor {
     return ast.type;
   }
 
+  public Object visitDereferenceVname(DereferenceVname ast, Object o) {
+    System.out.println("in deref vname");
+    TypeDenoter eType = (TypeDenoter) ast.E.visit(this, null);
+    ast.type = ((PointerTypeDenoter) eType).T;
+    return ast.type;
+  }
+
   public Object visitSimpleVname(SimpleVname ast, Object o) {
     ast.variable = false;
     ast.type = StdEnvironment.errorType;
@@ -782,6 +791,7 @@ public final class Checker implements Visitor {
         ast.type = ((ConstDeclaration) binding).E.type;
         ast.variable = false;
       } else if (binding instanceof VarDeclaration) {
+        System.out.println("ast variable  " + ast.I.spelling);
         ast.type = ((VarDeclaration) binding).T;
         ast.variable = true;
       } else if (binding instanceof ConstFormalParameter) {
@@ -793,6 +803,7 @@ public final class Checker implements Visitor {
       } else
         reporter.reportError ("\"%\" is not a const or var identifier",
                               ast.I.spelling, ast.I.position);
+        System.out.println("in simple vname  " + ast.I.spelling);
 
     return ast.type;
   }
