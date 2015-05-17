@@ -154,7 +154,7 @@ public final class Scanner {
 
     case '^':
       takeIt();
-      return Token.DEREFERENCE_OP;
+      return Token.DEREFERENCE;
 
     case '&':
       takeIt();

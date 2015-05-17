@@ -41,8 +41,9 @@ import Triangle.AbstractSyntaxTrees.ConstActualParameter;
 import Triangle.AbstractSyntaxTrees.ConstDeclaration;
 import Triangle.AbstractSyntaxTrees.ConstFormalParameter;
 import Triangle.AbstractSyntaxTrees.Declaration;
-import Triangle.AbstractSyntaxTrees.DereferenceExpression;
-import Triangle.AbstractSyntaxTrees.DereferenceVname;
+import Triangle.AbstractSyntaxTrees.DerefCommand;
+import Triangle.AbstractSyntaxTrees.DerefRExpression;
+import Triangle.AbstractSyntaxTrees.DerefLExpression;
 import Triangle.AbstractSyntaxTrees.DeleteCommand;
 import Triangle.AbstractSyntaxTrees.DotVname;
 import Triangle.AbstractSyntaxTrees.EmptyActualParameterSequence;
@@ -128,6 +129,14 @@ public final class Encoder implements Visitor {
     encodeFetch(ast.V, frame, Machine.addressSize);
     emit(Machine.LOADLop, 0, 0, Machine.addressSize);//put size of object allocated on stack
     emit(Machine.CALLop, Machine.SBr, Machine.PBr, Machine.disposeDisplacement);//delete object on heap
+    return null;
+  }
+
+  public Object visitDerefCommand(DerefCommand ast, Object o) {
+    Frame frame = (Frame) o;
+    ast.E1.visit(this, frame);
+    ast.E2.visit(this, frame);
+    emit(Machine.CALLop, Machine.SBr, Machine.PBr, Machine.derefDisplacement);//delete object on heap
     return null;
   }
 
@@ -225,13 +234,22 @@ public final class Encoder implements Visitor {
     return valSize;
   }
 
-   public Object visitDereferenceExpression(DereferenceExpression ast,Object o) {
+  public Object visitDerefLExpression(DerefLExpression ast,Object o) {
+    Frame frame = (Frame) o;
+    encodeFetchAddress(ast.V, frame);//get address of pointed to object 
+    Integer valSize = (Integer) ast.type.visit(this, null);
+    return valSize;
+    //emit(Machine.LOADLop, 0, 0, pointerToAddr);//put address of pointed to object on stack
+    //emit(Machine.CALLop, Machine.SBr, Machine.PBr, Machine.derefDisplacement);
+  }
+
+  public Object visitDerefRExpression(DerefRExpression ast,Object o) {
     Frame frame = (Frame) o;
     Integer valSize = (Integer) ast.type.visit(this, null);
-    encodeFetchAddress(ast.V, frame);
-
-    return null;
-   }
+    encodeFetch(ast.V, frame, valSize);
+    return valSize;
+    //emit(Machine.CALLop, Machine.SBr, Machine.PBr, Machine.derefRDisplacement);//delete object on heap
+  }
 
   public Object visitEmptyExpression(EmptyExpression ast, Object o) {
     return new Integer(0);
@@ -738,14 +756,6 @@ public final class Encoder implements Visitor {
     return ast.I.decl.entity;
   }
 
-   public Object visitDereferenceVname(DereferenceVname ast,Object o) {
-      
-
-
-      return null;
-   }
-
-
   public Object visitSubscriptVname(SubscriptVname ast, Object o) {
     Frame frame = (Frame) o;
     RuntimeEntity baseObject;
@@ -863,6 +873,8 @@ public final class Encoder implements Visitor {
     elaborateStdEqRoutine(StdEnvironment.unequalDecl, Machine.neDisplacement);
     elaborateStdPrimRoutine(StdEnvironment.newDecl, Machine.newDisplacement);
     elaborateStdPrimRoutine(StdEnvironment.disposeDecl, Machine.disposeDisplacement);
+    elaborateStdPrimRoutine(StdEnvironment.derefDecl, Machine.derefDisplacement);
+    //elaborateStdPrimRoutine(StdEnvironment.derefRDecl, Machine.derefRDisplacement);
     //elaborateStdPrimRoutine(StdEnvironment.addressOfDecl, Machine.addressOfDisplacement);
   }
 

@@ -20,6 +20,7 @@ public interface Visitor {
   public abstract Object visitAssignCommand(AssignCommand ast, Object o);
   public abstract Object visitCallCommand(CallCommand ast, Object o);
   public abstract Object visitDeleteCommand(DeleteCommand ast, Object o);
+  public abstract Object visitDerefCommand(DerefCommand ast, Object o);
   public abstract Object visitEmptyCommand(EmptyCommand ast, Object o);
   public abstract Object visitIfCommand(IfCommand ast, Object o);
   public abstract Object visitLetCommand(LetCommand ast, Object o);
@@ -33,12 +34,13 @@ public interface Visitor {
   public abstract Object visitBinaryExpression(BinaryExpression ast, Object o);
   public abstract Object visitCallExpression(CallExpression ast, Object o);
   public abstract Object visitCharacterExpression(CharacterExpression ast, Object o);
+  public abstract Object visitDerefLExpression(DerefLExpression ast, Object o);
+  public abstract Object visitDerefRExpression(DerefRExpression ast, Object o);
   public abstract Object visitEmptyExpression(EmptyExpression ast, Object o);
   public abstract Object visitIfExpression(IfExpression ast, Object o);
   public abstract Object visitIntegerExpression(IntegerExpression ast, Object o);
   public abstract Object visitLetExpression(LetExpression ast, Object o);
   public abstract Object visitRecordExpression(RecordExpression ast, Object o);
-  public abstract Object visitDereferenceExpression(DereferenceExpression ast, Object o);
   public abstract Object visitReferenceExpression(ReferenceExpression ast, Object o);
   public abstract Object visitUnaryExpression(UnaryExpression ast, Object o);
   public abstract Object visitVnameExpression(VnameExpression ast, Object o);
@@ -46,8 +48,6 @@ public interface Visitor {
   // Declarations
   public abstract Object visitBinaryOperatorDeclaration(BinaryOperatorDeclaration ast, Object o);
   public abstract Object visitConstDeclaration(ConstDeclaration ast, Object o);
-  public abstract Object visitDereferenceOperatorDeclaration(DereferenceOperatorDeclaration ast, Object o);
-  public abstract Object visitReferenceOperatorDeclaration(ReferenceOperatorDeclaration ast, Object o);
   public abstract Object visitFuncDeclaration(FuncDeclaration ast, Object o);
   public abstract Object visitProcDeclaration(ProcDeclaration ast, Object o);
   public abstract Object visitSequentialDeclaration(SequentialDeclaration ast, Object o);
@@ -106,7 +106,6 @@ public interface Visitor {
 
   // Value-or-variable names
   public abstract Object visitDotVname(DotVname ast, Object o);
-  public abstract Object visitDereferenceVname(DereferenceVname ast, Object o);
   public abstract Object visitSimpleVname(SimpleVname ast, Object o);
   public abstract Object visitSubscriptVname(SubscriptVname ast, Object o);
 

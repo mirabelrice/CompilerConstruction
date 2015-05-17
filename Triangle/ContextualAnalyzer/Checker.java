@@ -34,8 +34,9 @@ import Triangle.AbstractSyntaxTrees.ConstDeclaration;
 import Triangle.AbstractSyntaxTrees.ConstFormalParameter;
 import Triangle.AbstractSyntaxTrees.Declaration;
 import Triangle.AbstractSyntaxTrees.DeleteCommand;
-import Triangle.AbstractSyntaxTrees.DereferenceVname;
-import Triangle.AbstractSyntaxTrees.DereferenceExpression;
+import Triangle.AbstractSyntaxTrees.DerefCommand;
+import Triangle.AbstractSyntaxTrees.DerefRExpression;
+import Triangle.AbstractSyntaxTrees.DerefLExpression;
 import Triangle.AbstractSyntaxTrees.DotVname;
 import Triangle.AbstractSyntaxTrees.EmptyActualParameterSequence;
 import Triangle.AbstractSyntaxTrees.EmptyCommand;
@@ -149,6 +150,18 @@ public final class Checker implements Visitor {
     return null;
   }
 
+  public Object visitDerefCommand(DerefCommand ast, Object o) {
+    System.out.println("in visit deref command");
+    TypeDenoter e1Type = (TypeDenoter) ast.E1.visit(this, null);
+    System.out.println("e1type: " + e1Type);
+    TypeDenoter e2Type = (TypeDenoter) ast.E2.visit(this, null);
+    System.out.println("e2type: " + e2Type);
+    if(!((PointerTypeDenoter) e1Type).T.equals(e2Type)) {
+       reporter.reportError ("Cannot assign \"%\" reference to ", "", ast.E1.position);
+    }
+    return null;
+  }
+
   public Object visitEmptyCommand(EmptyCommand ast, Object o) {
     return null;
   }
@@ -258,7 +271,16 @@ public final class Checker implements Visitor {
     return ast.type;
   }
 
-  public Object visitDereferenceExpression(DereferenceExpression ast, Object o) {
+  public Object visitDerefRExpression(DerefRExpression ast, Object o) {
+    TypeDenoter vType = (TypeDenoter) ast.V.visit(this, null);
+    if(!(vType instanceof PointerTypeDenoter)){
+       reporter.reportError("cannot dereference non-pointer type", "", ast.V.position);
+    }
+    ast.type = vType;
+    return ast.type;
+  }
+
+  public Object visitDerefLExpression(DerefLExpression ast, Object o) {
     TypeDenoter vType = (TypeDenoter) ast.V.visit(this, null);
     if(!(vType instanceof PointerTypeDenoter)){
        reporter.reportError("cannot dereference non-pointer type", "", ast.V.position);
@@ -760,15 +782,6 @@ public final class Checker implements Visitor {
     return ast.type;
   }
 
-  public Object visitDereferenceVname(DereferenceVname ast, Object o) {
-    System.out.println("ast.E   ");
-    System.out.println("in deref vname");
-    //ast.variable = ast.V.variable;
-    TypeDenoter eType = (TypeDenoter) ast.E.visit(this, null);
-    ast.type = ((PointerTypeDenoter) eType).T;
-    return ast.type;
-  }
-
   public Object visitSimpleVname(SimpleVname ast, Object o) {
     ast.variable = false;
     ast.type = StdEnvironment.errorType;
@@ -994,8 +1007,7 @@ public final class Checker implements Visitor {
     StdEnvironment.notgreaterDecl = declareStdBinaryOp("<=", StdEnvironment.integerType, StdEnvironment.integerType, StdEnvironment.booleanType);
     StdEnvironment.greaterDecl = declareStdBinaryOp(">", StdEnvironment.integerType, StdEnvironment.integerType, StdEnvironment.booleanType);
     StdEnvironment.notlessDecl = declareStdBinaryOp(">=", StdEnvironment.integerType, StdEnvironment.integerType, StdEnvironment.booleanType);
-    //StdEnvironment.derefDecl = declareStdUnaryOp("*", dummyPTD, StdEnvironment.integerType);
-    //StdEnvironment.addressOfDecl = declareStdUnaryOp("&", StdEnvironment.anyType, StdEnvironment.integerType);
+
 
     StdEnvironment.charDecl = declareStdType("Char", StdEnvironment.charType);
     StdEnvironment.chrDecl = declareStdFunc("chr", new SingleFormalParameterSequence(
@@ -1019,6 +1031,8 @@ public final class Checker implements Visitor {
     StdEnvironment.newDecl = declareStdFunc("new",  new SingleFormalParameterSequence(
                                          new VarFormalParameter(dummyI, dummyPTD, dummyPos), dummyPos), StdEnvironment.integerType);
     StdEnvironment.disposeDecl = declareStdFunc("delete",  new SingleFormalParameterSequence(
+                                         new VarFormalParameter(dummyI, dummyPTD, dummyPos), dummyPos), StdEnvironment.integerType);
+   StdEnvironment.derefDecl = declareStdFunc("^",  new SingleFormalParameterSequence(
                                          new VarFormalParameter(dummyI, dummyPTD, dummyPos), dummyPos), StdEnvironment.integerType);
   }
 }

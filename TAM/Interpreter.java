@@ -290,7 +290,7 @@ public class Interpreter {
   static void callPrimitive (int primitiveDisplacement) {
     // Invokes the given primitive routine.
 
-    int addr, size, heapAddr;
+    int addr, size, value, heapAddr;
     char ch;
     
 
@@ -443,10 +443,10 @@ public class Interpreter {
         size = data[ST - 1];
         interpreter.returnHeapBlock(size, heapAddr);
         break;
-      case Machine.dereferenceDisplacement:
-        heapAddr = data[ST - 2];
-        size = data[ST - 1];
-        interpreter.returnHeapBlock(size, heapAddr);
+      case Machine.derefDisplacement:
+        addr = data[ST - 2];
+        value = data[ST - 1];
+        data[addr] = value;
         break;
       /*
       case Machine.addressOfDisplacement:

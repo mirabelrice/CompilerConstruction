@@ -222,6 +222,10 @@ public class Disassembler {
       case Machine.disposeDisplacement:
 	System.out.print ("dispose ");
 	break;
+
+  case Machine.derefDisplacement:
+  System.out.print ("deref ");
+  break;
     /*
       case Machine.addressOf:
   System.out.print ("addressOf");
