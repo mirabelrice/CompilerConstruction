@@ -6,4 +6,5 @@ in
 	begin
 		ptr := new Integer;
 		delete ptr
+		put ptr;
 	end

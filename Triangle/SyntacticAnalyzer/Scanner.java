@@ -37,7 +37,7 @@ public final class Scanner {
   private boolean isOperator(char c) {
     return (c == '+' || c == '-' || c == '*' || c == '/' ||
 	    c == '=' || c == '<' || c == '>' || c == '\\' ||
-	    c == '&' || c == '@' || c == '%' || c == '^' ||
+	    c == '&' || c == '@' || c == '%' ||
 	    c == '?');
   }
 
@@ -111,7 +111,7 @@ public final class Scanner {
         takeIt();
       return Token.INTLITERAL;
 
-    case '+':  case '-': case '/':  case '=':
+    case '+':  case '-': case '*': case '/':  case '=':
     case '<':  case '>':  case '\\': case '@':
     case '%':  case '?': 
       takeIt();
@@ -152,9 +152,9 @@ public final class Scanner {
       takeIt();
       return Token.IS;
 
-    case '*':
+    case '^':
       takeIt();
-      return Token.DEREFERENCE;
+      return Token.DEREFERENCE_OP;
 
     case '&':
       takeIt();

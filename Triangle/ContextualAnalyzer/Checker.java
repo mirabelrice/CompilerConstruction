@@ -100,24 +100,26 @@ public final class Checker implements Visitor {
   // Always returns null. Does not use the given object.
 
   public Object visitAssignCommand(AssignCommand ast, Object o) {
-
     TypeDenoter vType =  (TypeDenoter) ast.V.visit(this, null);
-    System.out.println("vType" + vType);
     TypeDenoter eType = (TypeDenoter) ast.E.visit(this, null);
-    System.out.println("eType" + eType);
-
+   // System.out.println("type ast.e " + (TypeDenoter)ast.E);
 
     if (!ast.V.variable){
         reporter.reportError ("LHS of assignment is not a variable", "", ast.V.position);
     }
-    if(!(vType instanceof PointerTypeDenoter)){
+
+    if(ast.E instanceof AllocateExpression) {
+        if(!(vType instanceof PointerTypeDenoter)){
+          reporter.reportError ("Cannot use 'new' operator on non-pointer type", "", ast.V.position);
+        }
+    }
+    if(vType instanceof PointerTypeDenoter) {
+      if(!((PointerTypeDenoter) vType).T.equals(eType)) {
+          reporter.reportError ("pointer assignment incompatibility", "", ast.position);
+        } 
+    }else{
       if (!eType.equals(vType)){
         reporter.reportError ("assignment incompatibilty", "", ast.position);
-      }
-    }else{
-      if (!((PointerTypeDenoter) vType).T.equals(eType)){
-        System.out.println(((PointerTypeDenoter) vType).T);
-        reporter.reportError ("pointer assignment incompatibility", "", ast.position);
       }
     }
     return null;
@@ -140,9 +142,9 @@ public final class Checker implements Visitor {
   }
 
   public Object visitDeleteCommand(DeleteCommand ast, Object o) {
-    TypeDenoter eType = (TypeDenoter) ast.E.visit(this, null);
-    if (! (eType instanceof PointerTypeDenoter)){
-      reporter.reportError ("Cannot delete expression of type \"%\"", "", ast.E.position);
+    TypeDenoter vType = (TypeDenoter) ast.V.visit(this, null);
+    if (! (vType instanceof PointerTypeDenoter)){
+      reporter.reportError ("Cannot delete expression of type \"%\"", "", ast.V.position);
     }
     return null;
   }
@@ -188,16 +190,14 @@ public final class Checker implements Visitor {
 
   public Object visitAllocateExpression(AllocateExpression ast, Object o) {
     TypeDenoter pointerTo = (TypeDenoter)ast.T.visit(this, null);
-    
     if(!pointerTo.equals(StdEnvironment.integerType)){
        reporter.reportError("Unknown type", "", ast.position);
     }
-    ast.type = new PointerTypeDenoter(pointerTo, ast.position);
+    ast.type = pointerTo;
     return ast.type;
   }
 
   public Object visitArrayExpression(ArrayExpression ast, Object o) {
-    System.out.println("in array expression");
     TypeDenoter elemType = (TypeDenoter) ast.AA.visit(this, null);
     System.out.println("elem type:  " + elemType);
     IntegerLiteral il = new IntegerLiteral(new Integer(ast.AA.elemCount).toString(),
@@ -208,7 +208,6 @@ public final class Checker implements Visitor {
   }
 
   public Object visitBinaryExpression(BinaryExpression ast, Object o) {
-
     TypeDenoter e1Type = (TypeDenoter) ast.E1.visit(this, null);
     TypeDenoter e2Type = (TypeDenoter) ast.E2.visit(this, null);
     Declaration binding = (Declaration) ast.O.visit(this, null);
@@ -218,13 +217,11 @@ public final class Checker implements Visitor {
     else {
       if (! (binding instanceof BinaryOperatorDeclaration))
         reporter.reportError ("\"%\" is not a binary operator",
-                              ast.O.spelling, ast.O.position);
+                           ast.O.spelling, ast.O.position);
       BinaryOperatorDeclaration bbinding = (BinaryOperatorDeclaration) binding;
-      System.out.println("here");
       System.out.println(bbinding.ARG1);
       if (bbinding.ARG1 == StdEnvironment.anyType) {
         // this operator must be "=" or "\="
-        System.out.println("now here");
         if (! e1Type.equals(e2Type))
           reporter.reportError ("incompatible argument types for \"%\"",
                                 ast.O.spelling, ast.position);
@@ -263,7 +260,6 @@ public final class Checker implements Visitor {
 
   public Object visitDereferenceExpression(DereferenceExpression ast, Object o) {
     TypeDenoter vType = (TypeDenoter) ast.V.visit(this, null);
-    //ast.variable = ast.V.variable;
     if(!(vType instanceof PointerTypeDenoter)){
        reporter.reportError("cannot dereference non-pointer type", "", ast.V.position);
     }
@@ -321,7 +317,6 @@ public final class Checker implements Visitor {
                               ast.O.spelling, ast.O.position);
     else {
       UnaryOperatorDeclaration ubinding = (UnaryOperatorDeclaration) binding;
-      System.out.println("in unary");
       System.out.println(ubinding.ARG);
       if (! eType.equals(ubinding.ARG))
         reporter.reportError ("wrong argument type for \"%\"",
@@ -333,8 +328,6 @@ public final class Checker implements Visitor {
   
   public Object visitReferenceExpression(ReferenceExpression ast, Object o) {
     ast.type = (TypeDenoter) ast.V.visit(this, null);
-    System.out.println("ni visit ref");
-    System.out.println(ast.type);
     return ast.type;
   }
   
@@ -424,7 +417,6 @@ public final class Checker implements Visitor {
   // given object.
 
   public Object visitMultipleArrayAggregate(MultipleArrayAggregate ast, Object o) {
-    System.out.println("in multiple array aggregate");
     TypeDenoter eType = (TypeDenoter) ast.E.visit(this, null);
     TypeDenoter elemType = (TypeDenoter) ast.AA.visit(this, null);
     ast.elemCount = ast.AA.elemCount + 1;
@@ -652,7 +644,6 @@ public final class Checker implements Visitor {
   }
 
   public Object visitArrayTypeDenoter(ArrayTypeDenoter ast, Object o) {
-    System.out.println("in array type denoter");
     ast.T = (TypeDenoter) ast.T.visit(this, null);
     if ((Integer.valueOf(ast.IL.spelling).intValue()) == 0)
       reporter.reportError ("arrays must not be empty", "", ast.IL.position);
@@ -681,8 +672,6 @@ public final class Checker implements Visitor {
                             ast.I.spelling, ast.I.position);
       return StdEnvironment.errorType;
     }
-    System.out.println("in simple type denoter");
-    System.out.println(binding);
     return ((TypeDeclaration) binding).T;
 
   }
@@ -692,9 +681,7 @@ public final class Checker implements Visitor {
   }
 
   public Object visitPointerTypeDenoter(PointerTypeDenoter ast, Object o){
-    System.out.println("in pointer type");
     ast.T = (TypeDenoter) ast.T.visit(this, null);
-    System.out.println(ast.T);
     return ast;
   }
 
@@ -774,7 +761,9 @@ public final class Checker implements Visitor {
   }
 
   public Object visitDereferenceVname(DereferenceVname ast, Object o) {
+    System.out.println("ast.E   ");
     System.out.println("in deref vname");
+    //ast.variable = ast.V.variable;
     TypeDenoter eType = (TypeDenoter) ast.E.visit(this, null);
     ast.type = ((PointerTypeDenoter) eType).T;
     return ast.type;
@@ -791,7 +780,6 @@ public final class Checker implements Visitor {
         ast.type = ((ConstDeclaration) binding).E.type;
         ast.variable = false;
       } else if (binding instanceof VarDeclaration) {
-        System.out.println("ast variable  " + ast.I.spelling);
         ast.type = ((VarDeclaration) binding).T;
         ast.variable = true;
       } else if (binding instanceof ConstFormalParameter) {
@@ -803,7 +791,7 @@ public final class Checker implements Visitor {
       } else
         reporter.reportError ("\"%\" is not a const or var identifier",
                               ast.I.spelling, ast.I.position);
-        System.out.println("in simple vname  " + ast.I.spelling);
+
 
     return ast.type;
   }
@@ -822,9 +810,6 @@ public final class Checker implements Visitor {
         ast.type = ((ArrayTypeDenoter) vType).T;
       }
     }
-    System.out.println("in visit subscript");
-    System.out.println("in visit subscript " + ast.type);
-
     return ast.type;
   }
 
@@ -979,6 +964,8 @@ public final class Checker implements Visitor {
   // Enters these "declarations" in the identification table.
 
   private final static Identifier dummyI = new Identifier("", dummyPos);
+  private final static SimpleTypeDenoter dummyTD = new SimpleTypeDenoter(dummyI, dummyPos);
+  private final static PointerTypeDenoter dummyPTD = new PointerTypeDenoter(dummyTD, dummyPos);
 
   private void establishStdEnvironment () {
 
@@ -1007,6 +994,8 @@ public final class Checker implements Visitor {
     StdEnvironment.notgreaterDecl = declareStdBinaryOp("<=", StdEnvironment.integerType, StdEnvironment.integerType, StdEnvironment.booleanType);
     StdEnvironment.greaterDecl = declareStdBinaryOp(">", StdEnvironment.integerType, StdEnvironment.integerType, StdEnvironment.booleanType);
     StdEnvironment.notlessDecl = declareStdBinaryOp(">=", StdEnvironment.integerType, StdEnvironment.integerType, StdEnvironment.booleanType);
+    //StdEnvironment.derefDecl = declareStdUnaryOp("*", dummyPTD, StdEnvironment.integerType);
+    //StdEnvironment.addressOfDecl = declareStdUnaryOp("&", StdEnvironment.anyType, StdEnvironment.integerType);
 
     StdEnvironment.charDecl = declareStdType("Char", StdEnvironment.charType);
     StdEnvironment.chrDecl = declareStdFunc("chr", new SingleFormalParameterSequence(
@@ -1027,6 +1016,9 @@ public final class Checker implements Visitor {
     StdEnvironment.puteolDecl = declareStdProc("puteol", new EmptyFormalParameterSequence(dummyPos));
     StdEnvironment.equalDecl = declareStdBinaryOp("=", StdEnvironment.anyType, StdEnvironment.anyType, StdEnvironment.booleanType);
     StdEnvironment.unequalDecl = declareStdBinaryOp("\\=", StdEnvironment.anyType, StdEnvironment.anyType, StdEnvironment.booleanType);
-
+    StdEnvironment.newDecl = declareStdFunc("new",  new SingleFormalParameterSequence(
+                                         new VarFormalParameter(dummyI, dummyPTD, dummyPos), dummyPos), StdEnvironment.integerType);
+    StdEnvironment.disposeDecl = declareStdFunc("delete",  new SingleFormalParameterSequence(
+                                         new VarFormalParameter(dummyI, dummyPTD, dummyPos), dummyPos), StdEnvironment.integerType);
   }
 }

@@ -1,0 +1,10 @@
+let 
+	var ptr : pointer to Integer;
+	var num : Integer;
+	var num2 : Integer
+in
+	begin
+		num := 20;
+		ptr := new Integer;
+		ptr := &num2;
+	end

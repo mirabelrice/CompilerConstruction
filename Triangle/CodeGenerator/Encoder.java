@@ -18,9 +18,9 @@ import java.io.DataOutputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-
 import TAM.Instruction;
 import TAM.Machine;
+import TAM.FreeList;
 import Triangle.ErrorReporter;
 import Triangle.StdEnvironment;
 import Triangle.AbstractSyntaxTrees.AST;
@@ -28,6 +28,7 @@ import Triangle.AbstractSyntaxTrees.AnyTypeDenoter;
 import Triangle.AbstractSyntaxTrees.ArrayExpression;
 import Triangle.AbstractSyntaxTrees.ArrayTypeDenoter;
 import Triangle.AbstractSyntaxTrees.AssignCommand;
+import Triangle.AbstractSyntaxTrees.AllocateExpression;
 import Triangle.AbstractSyntaxTrees.BinaryExpression;
 import Triangle.AbstractSyntaxTrees.BinaryOperatorDeclaration;
 import Triangle.AbstractSyntaxTrees.BoolTypeDenoter;
@@ -40,6 +41,9 @@ import Triangle.AbstractSyntaxTrees.ConstActualParameter;
 import Triangle.AbstractSyntaxTrees.ConstDeclaration;
 import Triangle.AbstractSyntaxTrees.ConstFormalParameter;
 import Triangle.AbstractSyntaxTrees.Declaration;
+import Triangle.AbstractSyntaxTrees.DereferenceExpression;
+import Triangle.AbstractSyntaxTrees.DereferenceVname;
+import Triangle.AbstractSyntaxTrees.DeleteCommand;
 import Triangle.AbstractSyntaxTrees.DotVname;
 import Triangle.AbstractSyntaxTrees.EmptyActualParameterSequence;
 import Triangle.AbstractSyntaxTrees.EmptyCommand;
@@ -63,12 +67,14 @@ import Triangle.AbstractSyntaxTrees.MultipleFieldTypeDenoter;
 import Triangle.AbstractSyntaxTrees.MultipleFormalParameterSequence;
 import Triangle.AbstractSyntaxTrees.MultipleRecordAggregate;
 import Triangle.AbstractSyntaxTrees.Operator;
+import Triangle.AbstractSyntaxTrees.PointerTypeDenoter;
 import Triangle.AbstractSyntaxTrees.ProcActualParameter;
 import Triangle.AbstractSyntaxTrees.ProcDeclaration;
 import Triangle.AbstractSyntaxTrees.ProcFormalParameter;
 import Triangle.AbstractSyntaxTrees.Program;
 import Triangle.AbstractSyntaxTrees.RecordExpression;
 import Triangle.AbstractSyntaxTrees.RecordTypeDenoter;
+import Triangle.AbstractSyntaxTrees.ReferenceExpression;
 import Triangle.AbstractSyntaxTrees.SequentialCommand;
 import Triangle.AbstractSyntaxTrees.SequentialDeclaration;
 import Triangle.AbstractSyntaxTrees.SimpleTypeDenoter;
@@ -90,6 +96,13 @@ import Triangle.AbstractSyntaxTrees.Vname;
 import Triangle.AbstractSyntaxTrees.VnameExpression;
 import Triangle.AbstractSyntaxTrees.WhileCommand;
 
+
+/*
+*DONE:
+  -pointerTypeDenoter
+
+*/
+
 public final class Encoder implements Visitor {
 
 
@@ -107,6 +120,14 @@ public final class Encoder implements Visitor {
     Frame frame = (Frame) o;
     Integer argsSize = (Integer) ast.APS.visit(this, frame);
     ast.I.visit(this, new Frame(frame.level, argsSize));
+    return null;
+  }
+
+  public Object visitDeleteCommand(DeleteCommand ast, Object o) {
+    Frame frame = (Frame) o;
+    encodeFetch(ast.V, frame, Machine.addressSize);
+    emit(Machine.LOADLop, 0, 0, Machine.addressSize);//put size of object allocated on stack
+    emit(Machine.CALLop, Machine.SBr, Machine.PBr, Machine.disposeDisplacement);//delete object on heap
     return null;
   }
 
@@ -167,6 +188,17 @@ public final class Encoder implements Visitor {
     return ast.AA.visit(this, o);
   }
 
+  public Object visitAllocateExpression(AllocateExpression ast, Object o) {
+    System.out.println("in allocate expression");
+    Frame frame = (Frame) o;
+    Integer valSize = (Integer) ast.type.visit(this, null);//size of object allocated
+    System.out.println("data type" + ast.type);
+    emit(Machine.LOADLop, 0, 0, valSize);//put size of object allocated on stack
+    emit(Machine.CALLop, Machine.SBr, Machine.PBr, Machine.newDisplacement);//allocate object on heap, return
+
+    return new Integer(Machine.addressSize);
+  }
+
   public Object visitBinaryExpression(BinaryExpression ast, Object o) {
     Frame frame = (Frame) o;
     Integer valSize = (Integer) ast.type.visit(this, null);
@@ -186,13 +218,20 @@ public final class Encoder implements Visitor {
     return valSize;
   }
 
-  public Object visitCharacterExpression(CharacterExpression ast,
-						Object o) {
+  public Object visitCharacterExpression(CharacterExpression ast, Object o) {
     Frame frame = (Frame) o;
     Integer valSize = (Integer) ast.type.visit(this, null);
     emit(Machine.LOADLop, 0, 0, ast.CL.spelling.charAt(1));
     return valSize;
   }
+
+   public Object visitDereferenceExpression(DereferenceExpression ast,Object o) {
+    Frame frame = (Frame) o;
+    Integer valSize = (Integer) ast.type.visit(this, null);
+    encodeFetchAddress(ast.V, frame);
+
+    return null;
+   }
 
   public Object visitEmptyExpression(EmptyExpression ast, Object o) {
     return new Integer(0);
@@ -237,6 +276,13 @@ public final class Encoder implements Visitor {
   public Object visitRecordExpression(RecordExpression ast, Object o){
     ast.type.visit(this, null);
     return ast.RA.visit(this, o);
+  }
+
+  public Object visitReferenceExpression(ReferenceExpression ast, Object o) {
+    Frame frame = (Frame) o;
+    Integer valSize = (Integer) ast.type.visit(this, null);
+    encodeFetchAddress(ast.V, frame); //put address of var to be referenced on stack
+    return valSize;
   }
 
   public Object visitUnaryExpression(UnaryExpression ast, Object o) {
@@ -566,15 +612,15 @@ public final class Encoder implements Visitor {
     }
     return new Integer(Machine.integerSize);
   }
-  /*
+
   public Object visitPointerTypeDenoter(PointerTypeDenoter ast, Object o) {
     if (ast.entity == null) {
-      ast.entity = new TypeRepresentation(Machine.integerSize);
+      ast.entity = new TypeRepresentation(Machine.addressSize);//size of pointer is size of address
       writeTableDetails(ast);
     }
-    return new Integer(Machine.integerSize);
+    return new Integer(Machine.addressSize);
   }
-  */
+  
   public Object visitRecordTypeDenoter(RecordTypeDenoter ast, Object o) {
     int typeSize;
     if (ast.entity == null) {
@@ -692,6 +738,14 @@ public final class Encoder implements Visitor {
     return ast.I.decl.entity;
   }
 
+   public Object visitDereferenceVname(DereferenceVname ast,Object o) {
+      
+
+
+      return null;
+   }
+
+
   public Object visitSubscriptVname(SubscriptVname ast, Object o) {
     Frame frame = (Frame) o;
     RuntimeEntity baseObject;
@@ -716,6 +770,7 @@ public final class Encoder implements Visitor {
       }
       if (ast.indexed)
         emit(Machine.CALLop, Machine.SBr, Machine.PBr, Machine.addDisplacement);
+       
       else
         ast.indexed = true;
     }
@@ -806,6 +861,9 @@ public final class Encoder implements Visitor {
     elaborateStdPrimRoutine(StdEnvironment.puteolDecl, Machine.puteolDisplacement);
     elaborateStdEqRoutine(StdEnvironment.equalDecl, Machine.eqDisplacement);
     elaborateStdEqRoutine(StdEnvironment.unequalDecl, Machine.neDisplacement);
+    elaborateStdPrimRoutine(StdEnvironment.newDecl, Machine.newDisplacement);
+    elaborateStdPrimRoutine(StdEnvironment.disposeDecl, Machine.disposeDisplacement);
+    //elaborateStdPrimRoutine(StdEnvironment.addressOfDecl, Machine.addressOfDisplacement);
   }
 
   // Saves the object program in the named file.
@@ -863,6 +921,8 @@ public final class Encoder implements Visitor {
     }
   }
 
+
+
   // Patches the d-field of the instruction at address addr.
   private void patch (int addr, int d) {
     Machine.code[addr].d = d;
@@ -918,6 +978,7 @@ public final class Encoder implements Visitor {
 	     address.level), address.displacement + V.offset);
       }
     } else if (baseObject instanceof UnknownAddress) {
+      System.out.println("unknown address");
       ObjectAddress address = ((UnknownAddress) baseObject).address;
       emit(Machine.LOADop, Machine.addressSize, displayRegister(frame.level,
            address.level), address.displacement);
@@ -937,7 +998,7 @@ public final class Encoder implements Visitor {
   // frameSize is the anticipated size of the local stack frame when
   // the constant or variable is fetched at run-time.
   // valSize is the size of the constant or variable's value.
-
+ 
   private void encodeFetch(Vname V, Frame frame, int valSize) {
 
     RuntimeEntity baseObject = (RuntimeEntity) V.visit(this, frame);

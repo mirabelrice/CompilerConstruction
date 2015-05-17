@@ -144,7 +144,7 @@ final class Token extends Object {
     ",",
     ":=",
     "~",
-    "*",
+    "^",
     "&",
     "(",
     ")",

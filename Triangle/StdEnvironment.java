@@ -15,6 +15,8 @@
 package Triangle;
 
 import Triangle.AbstractSyntaxTrees.BinaryOperatorDeclaration;
+import Triangle.AbstractSyntaxTrees.DereferenceOperatorDeclaration;
+import Triangle.AbstractSyntaxTrees.ReferenceOperatorDeclaration;
 import Triangle.AbstractSyntaxTrees.ConstDeclaration;
 import Triangle.AbstractSyntaxTrees.FuncDeclaration;
 import Triangle.AbstractSyntaxTrees.ProcDeclaration;
@@ -38,17 +40,22 @@ public final class StdEnvironment {
     falseDecl, trueDecl, maxintDecl;
 
   public static UnaryOperatorDeclaration
-    notDecl;
+    notDecl; 
 
   public static BinaryOperatorDeclaration
     andDecl, orDecl,
     addDecl, subtractDecl, multiplyDecl, divideDecl, moduloDecl,
-    equalDecl, unequalDecl, lessDecl, notlessDecl, greaterDecl, notgreaterDecl;
+    equalDecl, unequalDecl, lessDecl, notlessDecl, greaterDecl, notgreaterDecl;// addressOfDecl;//, derefDecl, addressOfDecl;
+
+  public static DereferenceOperatorDeclaration
+    derefDecl;
+  public static ReferenceOperatorDeclaration
+    refDecl;
 
   public static ProcDeclaration
     getDecl, putDecl, getintDecl, putintDecl, geteolDecl, puteolDecl;
 
   public static FuncDeclaration
-    chrDecl, ordDecl, eolDecl, eofDecl;
+    chrDecl, ordDecl, eolDecl, eofDecl, newDecl, disposeDecl;
 
 }

@@ -29,14 +29,13 @@ import Triangle.AbstractSyntaxTrees.CharacterExpression;
 import Triangle.AbstractSyntaxTrees.CharacterLiteral;
 import Triangle.AbstractSyntaxTrees.Command;
 import Triangle.AbstractSyntaxTrees.DeleteCommand;
-import Triangle.AbstractSyntaxTrees.DereferenceCommand;
 import Triangle.AbstractSyntaxTrees.DereferenceExpression;
+import Triangle.AbstractSyntaxTrees.DereferenceCommand;
+import Triangle.AbstractSyntaxTrees.DereferenceOperatorExpression;
 import Triangle.AbstractSyntaxTrees.ConstActualParameter;
 import Triangle.AbstractSyntaxTrees.ConstDeclaration;
 import Triangle.AbstractSyntaxTrees.ConstFormalParameter;
 import Triangle.AbstractSyntaxTrees.Declaration;
-import Triangle.AbstractSyntaxTrees.DereferenceExpression;
-import Triangle.AbstractSyntaxTrees.DereferenceVname;
 import Triangle.AbstractSyntaxTrees.DotVname;
 import Triangle.AbstractSyntaxTrees.EmptyActualParameterSequence;
 import Triangle.AbstractSyntaxTrees.EmptyCommand;
@@ -237,7 +236,22 @@ public class Parser {
   Operator parseOperator() throws SyntaxError {
     Operator O = null;
 
-    if (currentToken.kind == Token.OPERATOR) {
+    if (currentToken.kind == Token.OPERATOR || currentToken.kind == Token.DEREFERENCE_OP) {
+      previousTokenPosition = currentToken.position;
+      String spelling = currentToken.spelling;
+      O = new Operator(spelling, previousTokenPosition);
+      currentToken = lexicalAnalyser.scan();
+    } else {
+      O = null;
+      syntacticError("operator expected here", "");
+    }
+    return O;
+  }
+
+  Operator parseDereferenceOperator() throws SyntaxError {
+    Operator O = null;
+
+    if (currentToken.kind == Token.DEREFERENCE) {
       previousTokenPosition = currentToken.position;
       String spelling = currentToken.spelling;
       O = new Operator(spelling, previousTokenPosition);
@@ -281,16 +295,28 @@ public class Parser {
     start(commandPos);
 
     switch (currentToken.kind) {
-    case Token.DEREFERENCE:
+    case Token.DEREFERENCE_OP:
       {
+        acceptIt();
         Vname vAST = parseDereferenceVname();
         accept(Token.BECOMES);
         Expression eAST = parseExpression();
         finish(commandPos);
+        commandAST = new DereferenceCommand(vAST, eAST, commandPos);
+
+      }
+    break;
+    /*
+    case Token.OPERATOR:
+      {
+        Expression eAST = parseExpression();
+        accept(Token.BECOMES);
+        
+        finish(commandPos);
         commandAST = new AssignCommand(vAST, eAST, commandPos);
       }
     break;
-
+*/
     case Token.IDENTIFIER:
       {
         Identifier iAST = parseIdentifier();
@@ -357,9 +383,9 @@ public class Parser {
     case Token.DELETE:
     {
       acceptIt();
-      Expression eAST = parseExpression();
+      Vname vAST = parseVname();
       finish(commandPos);
-      commandAST = new DeleteCommand(eAST, commandPos);
+      commandAST = new DeleteCommand(vAST, commandPos);
     }
     break;
 
@@ -563,6 +589,10 @@ public class Parser {
     return expressionAST;
   }
 
+  DereferenceExpression parseDereferenceExpression() throws SyntaxError {
+     DereferenceExpression derefExprAST = null;
+  }
+
   RecordAggregate parseRecordAggregate() throws SyntaxError {
     RecordAggregate aggregateAST = null; // in case there's a syntactic error
 
@@ -642,13 +672,16 @@ public class Parser {
   }
 
   Vname parseDereferenceVname() throws SyntaxError{
+    /*
     SourcePosition vnamePos = new SourcePosition();
     start(vnamePos);
-    Vname vAST = null; // in case there's a syntactic error
     Expression eAST = parseExpression();
+    Vname vAST = eAST.V;
     finish(vnamePos);
-    vAST = new DereferenceVname(eAST, vnamePos);
+    vAST = new DereferenceVname(vAST, eAST, vnamePos);
     return vAST;
+    */
+    return null;
   }
 
 ///////////////////////////////////////////////////////////////////////////////

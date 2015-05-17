@@ -3,13 +3,13 @@ import Triangle.SyntacticAnalyzer.SourcePosition;
 
 public class DeleteCommand extends Command {
 
-  public DeleteCommand(Vname vAST, SourcePosition thePosition) {
+  public DereferenceCommand(Vname vAST, SourcePosition thePosition) {
     super (thePosition);
     V = vAST;
   }
 
   public Object visit(Visitor v, Object o) {
-    return v.visitDeleteCommand(this, o);
+    return v.visitDereferenceCommand(this, o);
   }
 
   public Vname V;

@@ -15,7 +15,7 @@
 package Triangle;
 
 import Triangle.AbstractSyntaxTrees.Program;
-//import Triangle.CodeGenerator.Encoder;
+import Triangle.CodeGenerator.Encoder;
 import Triangle.ContextualAnalyzer.Checker;
 import Triangle.SyntacticAnalyzer.Parser;
 import Triangle.SyntacticAnalyzer.Scanner;
@@ -38,7 +38,7 @@ public class Compiler2 {
   private static Scanner scanner;
   private static Parser parser;
   private static Checker checker;
-  //private static Encoder encoder;
+  private static Encoder encoder;
   private static ErrorReporter reporter;
   private static Drawer drawer;
   
@@ -78,7 +78,7 @@ public class Compiler2 {
     reporter = new ErrorReporter();
     parser   = new Parser(scanner, reporter);
     checker  = new Checker(reporter);
-   // encoder  = new Encoder(reporter);
+    encoder  = new Encoder(reporter);
     drawer   = new Drawer();
     scanner.enableDebugging();
     theAST = parser.parseProgram();    // 1st pass
@@ -91,17 +91,17 @@ public class Compiler2 {
       if (showingAST) {
         drawer.draw(theAST);
       }
-      /*
+
       if (reporter.numErrors == 0) {
         System.out.println("Code Generation ...");
         encoder.encodeRun(theAST, showingTable); // 3rd pass
       }
-      */
+
     }
     
     boolean successful = (reporter.numErrors == 0);
     if (successful) {
-     // encoder.saveObjectProgram(objectName);
+      encoder.saveObjectProgram(objectName);
       System.out.println("Compilation was successful.");
     } else {
       System.out.println("Compilation was unsuccessful.");

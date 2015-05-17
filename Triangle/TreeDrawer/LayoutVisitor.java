@@ -20,6 +20,8 @@ import Triangle.AbstractSyntaxTrees.AST;
 import Triangle.AbstractSyntaxTrees.AnyTypeDenoter;
 import Triangle.AbstractSyntaxTrees.ArrayExpression;
 import Triangle.AbstractSyntaxTrees.ArrayTypeDenoter;
+import Triangle.AbstractSyntaxTrees.AllocateExpression;
+import Triangle.AbstractSyntaxTrees.ArrayTypeDenoter;
 import Triangle.AbstractSyntaxTrees.AssignCommand;
 import Triangle.AbstractSyntaxTrees.BinaryExpression;
 import Triangle.AbstractSyntaxTrees.BinaryOperatorDeclaration;
@@ -35,6 +37,8 @@ import Triangle.AbstractSyntaxTrees.ConstFormalParameter;
 import Triangle.AbstractSyntaxTrees.DotVname;
 import Triangle.AbstractSyntaxTrees.DereferenceExpression;
 import Triangle.AbstractSyntaxTrees.DereferenceVname;
+import Triangle.AbstractSyntaxTrees.DereferenceOperatorDeclaration;
+import Triangle.AbstractSyntaxTrees.DeleteCommand;
 import Triangle.AbstractSyntaxTrees.EmptyActualParameterSequence;
 import Triangle.AbstractSyntaxTrees.EmptyCommand;
 import Triangle.AbstractSyntaxTrees.EmptyExpression;
@@ -65,6 +69,7 @@ import Triangle.AbstractSyntaxTrees.PointerTypeDenoter;
 import Triangle.AbstractSyntaxTrees.RecordExpression;
 import Triangle.AbstractSyntaxTrees.RecordTypeDenoter;
 import Triangle.AbstractSyntaxTrees.ReferenceExpression;
+import Triangle.AbstractSyntaxTrees.ReferenceOperatorDeclaration;
 import Triangle.AbstractSyntaxTrees.SequentialCommand;
 import Triangle.AbstractSyntaxTrees.SequentialDeclaration;
 import Triangle.AbstractSyntaxTrees.SimpleTypeDenoter;
@@ -109,6 +114,10 @@ public class LayoutVisitor implements Visitor {
     return layoutNullary("EmptyCom.");
   }
 
+  public Object visitDeleteCommand(DeleteCommand ast, Object obj) {
+    return layoutUnary("DeleteCom.", ast.V);
+  }
+
   public Object visitIfCommand(IfCommand ast, Object obj) {
     return layoutTernary("IfCom.", ast.E, ast.C1, ast.C2);
   }
@@ -127,6 +136,11 @@ public class LayoutVisitor implements Visitor {
 
 
   // Expressions
+
+  public Object visitAllocateExpression(AllocateExpression ast, Object obj) {
+    return layoutUnary("AllocateExpr.", ast.T);
+  }
+
   public Object visitArrayExpression(ArrayExpression ast, Object obj) {
     return layoutUnary("ArrayExpr.", ast.AA);
   }
@@ -193,12 +207,21 @@ public class LayoutVisitor implements Visitor {
     return layoutBinary("ConstDecl.", ast.I, ast.E);
   }
 
+
   public Object visitFuncDeclaration(FuncDeclaration ast, Object obj) {
     return layoutQuaternary("FuncDecl.", ast.I, ast.FPS, ast.T, ast.E);
   }
 
   public Object visitProcDeclaration(ProcDeclaration ast, Object obj) {
     return layoutTernary("ProcDecl.", ast.I, ast.FPS, ast.C);
+  }
+
+  public Object visitDereferenceOperatorDeclaration(DereferenceOperatorDeclaration ast, Object obj) {
+    return layoutUnary("DerefDecl.", ast.O, ast.ARG, ast.RES);
+  }
+
+  public Object visitReferenceOperatorDeclaration(ReferenceOperatorDeclaration ast, Object obj) {
+    return layoutUnary("RefDecl.", ast.O, ast.ARG, ast.RES);
   }
 
   public Object visitSequentialDeclaration(SequentialDeclaration ast, Object obj) {
@@ -338,7 +361,7 @@ public class LayoutVisitor implements Visitor {
     return layoutTernary("Mult.F.TypeD.", ast.I, ast.T, ast.FT);
   }
 
-  public Object visitPointerTypeDenoter(MultipleFieldTypeDenoter ast, Object obj) {
+  public Object visitPointerTypeDenoter(PointerTypeDenoter ast, Object obj) {
     return layoutUnary("pointer.TypeD.", ast.T);
   }
 
@@ -371,7 +394,7 @@ public class LayoutVisitor implements Visitor {
   }
 
   public Object visitDereferenceVname(DereferenceVname ast, Object obj) {
-    return layoutUnary("deref.Vname", ast.E);
+    return layoutBinary("deref.Vname", ast.V, ast.E);
   }
 
   public Object visitSimpleVname(SimpleVname ast, Object obj) {

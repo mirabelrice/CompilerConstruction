@@ -55,7 +55,7 @@ public final class Machine {
 
 
 // CODE STORE
-
+//array of instructions
   public static Instruction[] code = new Instruction[1024];
 
 
@@ -134,5 +134,6 @@ public final class Machine {
     putintDisplacement = 26,
     newDisplacement = 27,
     disposeDisplacement = 28;
+    //addressOfDisplacement = 29;
 
 }

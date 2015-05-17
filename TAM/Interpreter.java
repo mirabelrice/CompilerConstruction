@@ -19,15 +19,17 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
-public class Interpreter {
 
+public class Interpreter {
 
   static String objectName;
 
-
-// DATA STORE
-
+ // DATA STORE
+ //array of words
   static int[] data = new int[1024];
+
+  FreeList heapList = new FreeList();
+ static Interpreter interpreter = new Interpreter();
 
 
 // DATA STORE REGISTERS AND OTHER REGISTERS
@@ -217,7 +219,7 @@ public class Interpreter {
   static void checkSpace (int spaceNeeded) {
     // Signals failure if there is not enough space to expand the stack or
     // heap by spaceNeeded.
-
+    
     if (HT - ST < spaceNeeded)
       status = failedDataStoreFull;
   }
@@ -288,8 +290,9 @@ public class Interpreter {
   static void callPrimitive (int primitiveDisplacement) {
     // Invokes the given primitive routine.
 
-    int addr, size;
+    int addr, size, heapAddr;
     char ch;
+    
 
     switch (primitiveDisplacement) {
       case Machine.idDisplacement:
@@ -315,6 +318,8 @@ public class Interpreter {
         data[ST - 1] = -data[ST - 1];
         break;
       case Machine.addDisplacement:
+      System.out.println("in add disp.");
+        showStatus();
         ST = ST - 1;
         accumulator = data[ST - 1];
         data[ST - 1] = overflowChecked(accumulator + data[ST]);
@@ -419,16 +424,46 @@ public class Interpreter {
         accumulator = data[ST];
         System.out.print(accumulator);
         break;
+
       case Machine.newDisplacement:
-        size = data[ST - 1];
-        checkSpace(size);
-        HT = HT - size;
-        data[ST - 1] = HT;
+        size = data[ST - 1];//get size of object going on heap
+        int initialVal = 0;//initial value heap object will hold
+        checkSpace(size);//check if enough space on heap
+        heapAddr = interpreter.getHeapAddr(size);//search free list for open block with object size in heap. if block is open, returns address of block
+       
+        if(heapAddr == 0){//no empty blocks with needed size, must grow heap (grows towards stack)
+          HT = HT - size;//move HT directly below top of heap
+          heapAddr = HT;
+        }
+        data[heapAddr] = initialVal;
+        data[ST - 1] = heapAddr;//set value of pointer to heap address
         break;
       case Machine.disposeDisplacement:
-        ST = ST - 1; // no action taken at present
+        heapAddr = data[ST - 2];
+        size = data[ST - 1];
+        interpreter.returnHeapBlock(size, heapAddr);
         break;
+      case Machine.dereferenceDisplacement:
+        heapAddr = data[ST - 2];
+        size = data[ST - 1];
+        interpreter.returnHeapBlock(size, heapAddr);
+        break;
+      /*
+      case Machine.addressOfDisplacement:
+        System.out.println("in address of displacement");
+        addr = data[ST - 1];
+        DATA
+      */
     }
+  }
+
+  public int getHeapAddr(int size){
+    int heapAddr = heapList.findHeapBlock(size);
+    return heapAddr;
+  }
+
+  public void returnHeapBlock(int size, int heapAddr) {
+    heapList.addHeapBlock(size, heapAddr);
   }
 
   static void interpretProgram() {
@@ -469,6 +504,7 @@ public class Interpreter {
           CP = CP + 1;
           break;
         case Machine.LOADIop:
+
           ST = ST - 1;
           addr = data[ST];
           checkSpace(n);
@@ -478,10 +514,14 @@ public class Interpreter {
           CP = CP + 1;
           break;
         case Machine.LOADLop:
+           System.out.println("in load l op");
+        showStatus();
           checkSpace(1);
           data[ST] = d;
           ST = ST + 1;
           CP = CP + 1;
+          System.out.println("after loadop");
+          showStatus();
           break;
         case Machine.STOREop:
           addr = d + content(r);
@@ -500,8 +540,8 @@ public class Interpreter {
           break;
         case Machine.CALLop:
           addr = d + content(r);
-          if (addr >= Machine.PB) {
-            callPrimitive(addr - Machine.PB);
+          if (addr >= Machine.PB) {//primitive routine called
+            callPrimitive(addr - Machine.PB);//callprimitive(displacement)
             CP = CP + 1;
           } else {
             checkSpace(3);
@@ -610,6 +650,7 @@ public class Interpreter {
       System.err.println ("Error reading object file: " + s);
     }
   }
+
 
 
 // RUNNING
