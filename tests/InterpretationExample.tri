@@ -1,12 +1,14 @@
 let 
 	var ptr : pointer to Integer;
 	var ptr2 : pointer to Integer;
-
-	var num : Integer;
-	var num2 : Integer
+	var num : Integer
 in
 	begin
 		num := 20;
 		ptr := new Integer;
+		ptr2 := new Integer;
+		^ptr2 := 8;
 		^ptr := ^ptr2;
+		num := ^ptr;
+		putint(num);
 	end

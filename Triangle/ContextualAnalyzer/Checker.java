@@ -114,11 +114,19 @@ public final class Checker implements Visitor {
           reporter.reportError ("Cannot use 'new' operator on non-pointer type", "", ast.V.position);
         }
     }
-    if(vType instanceof PointerTypeDenoter) {
+    if(ast.E instanceof DerefRExpression) {
+      System.out.println("instance of deref expr");
+      if(!((PointerTypeDenoter) eType).T.equals(vType)) {
+          reporter.reportError ("pointer assignment incompatibility", "", ast.position);
+        }
+    }
+
+    else if(vType instanceof PointerTypeDenoter) {
       if(!((PointerTypeDenoter) vType).T.equals(eType)) {
           reporter.reportError ("pointer assignment incompatibility", "", ast.position);
         } 
-    }else{
+    }
+    else{
       if (!eType.equals(vType)){
         reporter.reportError ("assignment incompatibilty", "", ast.position);
       }
@@ -153,10 +161,18 @@ public final class Checker implements Visitor {
   public Object visitDerefCommand(DerefCommand ast, Object o) {
     System.out.println("in visit deref command");
     TypeDenoter e1Type = (TypeDenoter) ast.E1.visit(this, null);
+
     System.out.println("e1type: " + e1Type);
     TypeDenoter e2Type = (TypeDenoter) ast.E2.visit(this, null);
     System.out.println("e2type: " + e2Type);
-    if(!((PointerTypeDenoter) e1Type).T.equals(e2Type)) {
+
+    if(e2Type instanceof PointerTypeDenoter) {
+       TypeDenoter rType = ((PointerTypeDenoter) e2Type).T;
+       if(!((PointerTypeDenoter) e1Type).T.equals(rType)) {
+          reporter.reportError ("Reference assignment incompatibilty \"%\"", "", ast.E1.position);
+        }
+    }
+    else if(!((PointerTypeDenoter) e1Type).T.equals(e2Type)) {
        reporter.reportError ("Cannot assign \"%\" reference to ", "", ast.E1.position);
     }
     return null;
@@ -270,7 +286,7 @@ public final class Checker implements Visitor {
     ast.type = StdEnvironment.charType;
     return ast.type;
   }
-
+ 
   public Object visitDerefRExpression(DerefRExpression ast, Object o) {
     TypeDenoter vType = (TypeDenoter) ast.V.visit(this, null);
     if(!(vType instanceof PointerTypeDenoter)){
@@ -945,8 +961,7 @@ public final class Checker implements Visitor {
   // unary operator, and enters it in the identification table.
   // This "declaration" summarises the operator's type info.
 
-  private UnaryOperatorDeclaration declareStdUnaryOp
-    (String op, TypeDenoter argType, TypeDenoter resultType) {
+  private UnaryOperatorDeclaration declareStdUnaryOp (String op, TypeDenoter argType, TypeDenoter resultType) {
 
     UnaryOperatorDeclaration binding;
 
@@ -1032,7 +1047,7 @@ public final class Checker implements Visitor {
                                          new VarFormalParameter(dummyI, dummyPTD, dummyPos), dummyPos), StdEnvironment.integerType);
     StdEnvironment.disposeDecl = declareStdFunc("delete",  new SingleFormalParameterSequence(
                                          new VarFormalParameter(dummyI, dummyPTD, dummyPos), dummyPos), StdEnvironment.integerType);
-   StdEnvironment.derefDecl = declareStdFunc("^",  new SingleFormalParameterSequence(
-                                         new VarFormalParameter(dummyI, dummyPTD, dummyPos), dummyPos), StdEnvironment.integerType);
+
+  
   }
 }

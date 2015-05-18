@@ -97,16 +97,7 @@ import Triangle.AbstractSyntaxTrees.Vname;
 import Triangle.AbstractSyntaxTrees.VnameExpression;
 import Triangle.AbstractSyntaxTrees.WhileCommand;
 
-
-/*
-*DONE:
-  -pointerTypeDenoter
-
-*/
-
 public final class Encoder implements Visitor {
-
-
   // Commands
 
   public Object visitAssignCommand(AssignCommand ast, Object o) {
@@ -136,7 +127,8 @@ public final class Encoder implements Visitor {
     Frame frame = (Frame) o;
     ast.E1.visit(this, frame);
     ast.E2.visit(this, frame);
-    emit(Machine.CALLop, Machine.SBr, Machine.PBr, Machine.derefDisplacement);//delete object on heap
+    
+    emit(Machine.CALLop, Machine.SBr, Machine.PBr, Machine.derefDisplacement);
     return null;
   }
 
@@ -204,7 +196,6 @@ public final class Encoder implements Visitor {
     System.out.println("data type" + ast.type);
     emit(Machine.LOADLop, 0, 0, valSize);//put size of object allocated on stack
     emit(Machine.CALLop, Machine.SBr, Machine.PBr, Machine.newDisplacement);//allocate object on heap, return
-
     return new Integer(Machine.addressSize);
   }
 
@@ -236,8 +227,8 @@ public final class Encoder implements Visitor {
 
   public Object visitDerefLExpression(DerefLExpression ast,Object o) {
     Frame frame = (Frame) o;
-    encodeFetchAddress(ast.V, frame);//get address of pointed to object 
     Integer valSize = (Integer) ast.type.visit(this, null);
+    encodeFetch(ast.V, frame, valSize);//get address of pointed to object 
     return valSize;
     //emit(Machine.LOADLop, 0, 0, pointerToAddr);//put address of pointed to object on stack
     //emit(Machine.CALLop, Machine.SBr, Machine.PBr, Machine.derefDisplacement);
@@ -247,8 +238,8 @@ public final class Encoder implements Visitor {
     Frame frame = (Frame) o;
     Integer valSize = (Integer) ast.type.visit(this, null);
     encodeFetch(ast.V, frame, valSize);
+    emit(Machine.CALLop, Machine.SBr, Machine.PBr, Machine.derefRDisplacement);
     return valSize;
-    //emit(Machine.CALLop, Machine.SBr, Machine.PBr, Machine.derefRDisplacement);//delete object on heap
   }
 
   public Object visitEmptyExpression(EmptyExpression ast, Object o) {
@@ -873,7 +864,6 @@ public final class Encoder implements Visitor {
     elaborateStdEqRoutine(StdEnvironment.unequalDecl, Machine.neDisplacement);
     elaborateStdPrimRoutine(StdEnvironment.newDecl, Machine.newDisplacement);
     elaborateStdPrimRoutine(StdEnvironment.disposeDecl, Machine.disposeDisplacement);
-    elaborateStdPrimRoutine(StdEnvironment.derefDecl, Machine.derefDisplacement);
     //elaborateStdPrimRoutine(StdEnvironment.derefRDecl, Machine.derefRDisplacement);
     //elaborateStdPrimRoutine(StdEnvironment.addressOfDecl, Machine.addressOfDisplacement);
   }

@@ -134,7 +134,8 @@ public final class Machine {
     putintDisplacement = 26,
     newDisplacement = 27,
     disposeDisplacement = 28,
-    derefDisplacement = 29;
+    derefDisplacement = 29,
+    derefRDisplacement = 30;
     //addressOfDisplacement = 29;
 
 }

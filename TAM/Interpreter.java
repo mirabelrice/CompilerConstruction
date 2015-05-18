@@ -437,6 +437,8 @@ public class Interpreter {
         }
         data[heapAddr] = initialVal;
         data[ST - 1] = heapAddr;//set value of pointer to heap address
+        System.out.println("in new: " );
+        showStatus();
         break;
       case Machine.disposeDisplacement:
         heapAddr = data[ST - 2];
@@ -444,16 +446,22 @@ public class Interpreter {
         interpreter.returnHeapBlock(size, heapAddr);
         break;
       case Machine.derefDisplacement:
+        System.out.println("in deref displacement");
+        showStatus();
         addr = data[ST - 2];
+        System.out.println("addr: " + addr);
         value = data[ST - 1];
         data[addr] = value;
+        System.out.println("after");
+        System.out.println("Value: " + value);
+        showStatus();
         break;
-      /*
-      case Machine.addressOfDisplacement:
-        System.out.println("in address of displacement");
+      
+      case Machine.derefRDisplacement:
         addr = data[ST - 1];
-        DATA
-      */
+        value = data[addr];
+        data[ST] = value;
+        ST = ST + 1;
     }
   }
 
@@ -499,9 +507,12 @@ public class Interpreter {
         case Machine.LOADAop:
           addr = d + content(r);
           checkSpace(1);
+          System.out.println("addr: " + addr);
           data[ST] = addr;
           ST = ST + 1;
           CP = CP + 1;
+          System.out.println("after LoadAop: ");
+          showStatus();
           break;
         case Machine.LOADIop:
 

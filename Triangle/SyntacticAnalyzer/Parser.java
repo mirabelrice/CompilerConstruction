@@ -285,7 +285,6 @@ public class Parser {
     case Token.DEREFERENCE:
       {
         acceptIt();
-        System.out.println("in deref command");
         Vname vAST = parseVname();
         Expression e1AST = new DerefLExpression(vAST, commandPos);
         accept(Token.BECOMES);
